@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hormuz Disruption ETF Screener | TWS Research</title>
+<meta name="description" content="Quantitative scoring model for identifying stocks most likely to benefit from the Strait of Hormuz closure. 30 candidates across 9 sectors scored on 6 supply-disruption dimensions including infrastructure destruction impact.">
+<meta name="author" content="The Wealth Society">
+
+<!-- Open Graph / Link Preview -->
+<meta property="og:title" content="Hormuz Disruption ETF Screener v3">
+<meta property="og:description" content="30 stocks scored across 6 dimensions including Infrastructure Destruction Impact — facilities destroyed, repair timelines, and long-term capacity loss.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://placehold.co/1200x630/0a0c10/f5a623?text=Hormuz+ETF+Screener&font=montserrat">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Hormuz Disruption ETF Screener | TWS Research">
+<meta name="twitter:description" content="Quantitative scoring model: 30 stocks across 9 sectors ranked by Hormuz crisis exposure.">
+
+<!-- Favicon (inline SVG as data URI) -->
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+
+<!-- Theme color for mobile browsers -->
+<meta name="theme-color" content="#08090d">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Instrument+Sans:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #08090d;
+  --surface: #111318;
+  --surface2: #191c24;
+  --surface3: #1f2330;
+  --border: #272c3a;
+  --text: #e4e7ef;
+  --text-dim: #6b7394;
+  --accent: #f5a623;
+  --red: #ef4444;
+  --green: #22c55e;
+  --blue: #3b82f6;
+  --purple: #a78bfa;
+  --cyan: #22d3ee;
+  --pink: #f472b6;
+  --gold-glow: rgba(245,166,35,0.12);
+  --red-glow: rgba(239,68,68,0.1);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Instrument Sans', sans-serif;
+  min-height: 100vh;
+}
+
+.noise {
+  position:fixed; inset:0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
+  pointer-events:none; z-index:0;
+}
+
+.container { max-width:1500px; margin:0 auto; padding:36px 20px; position:relative; z-index:1; }
+
+/* Header */
+.crisis-bar {
+  display:inline-flex; align-items:center; gap:8px;
+  padding:5px 14px; background:var(--red); color:#fff;
+  font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:700;
+  letter-spacing:1.5px; text-transform:uppercase; border-radius:4px;
+  margin-bottom:14px; animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,0.4)}
+  50%{box-shadow:0 0 16px 3px rgba(239,68,68,0.15)}
+}
+
+h1 {
+  font-family:'Instrument Sans',sans-serif; font-size:32px; font-weight:700;
+  letter-spacing:-0.4px; margin-bottom:6px;
+  background:linear-gradient(135deg,#e4e7ef 30%,var(--accent));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+}
+
+.subtitle { color:var(--text-dim); font-size:14px; line-height:1.6; max-width:800px; margin-bottom:36px; }
+
+/* Tabs */
+.tabs { display:flex; gap:2px; margin-bottom:24px; background:var(--surface); border-radius:8px; padding:3px; width:fit-content; }
+.tab {
+  padding:8px 18px; border-radius:6px; font-size:12px; font-weight:600;
+  cursor:pointer; color:var(--text-dim); transition:all 0.2s; border:none; background:none;
+}
+.tab.active { background:var(--surface3); color:var(--text); }
+.tab:hover:not(.active) { color:var(--text); }
+
+/* Equation Panel */
+.panel { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:24px; margin-bottom:24px; }
+.panel h2 { font-family:'Instrument Sans',sans-serif; font-size:16px; font-weight:700; margin-bottom:14px; display:flex; align-items:center; gap:8px; }
+
+.equation {
+  background:var(--bg); border:1px solid var(--border); border-radius:6px;
+  padding:16px; font-family:'JetBrains Mono',monospace; font-size:12px;
+  line-height:2; color:var(--cyan); overflow-x:auto;
+}
+.equation .v { color:var(--accent); }
+.equation .c { color:#3d4460; font-style:italic; }
+
+.wgrid { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:12px; margin-top:16px; }
+.wcard { background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:14px; }
+.wcard label { display:block; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.7px; margin-bottom:6px; }
+.wcard .wval { font-family:'JetBrains Mono',monospace; font-size:22px; font-weight:700; color:var(--accent); }
+.wcard input[type=range] { width:100%; -webkit-appearance:none; height:3px; background:var(--border); border-radius:2px; outline:none; margin-top:6px; }
+.wcard input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:14px; height:14px; border-radius:50%; background:var(--accent); cursor:pointer; }
+.wcard .wdesc { font-size:10px; color:var(--text-dim); margin-top:6px; line-height:1.5; }
+
+/* Filter bar */
+.filter-bar { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:16px; }
+.filter-btn {
+  padding:5px 12px; border-radius:5px; font-size:11px; font-weight:600;
+  cursor:pointer; border:1px solid var(--border); background:var(--surface2); color:var(--text-dim);
+  transition:all 0.15s;
+}
+.filter-btn.active { border-color:var(--accent); color:var(--accent); background:rgba(245,166,35,0.08); }
+.filter-btn:hover { color:var(--text); }
+
+/* Table */
+.tbl-wrap { background:var(--surface); border:1px solid var(--border); border-radius:10px; overflow:hidden; margin-bottom:24px; }
+.tbl-head { display:flex; justify-content:space-between; align-items:center; padding:16px 20px; border-bottom:1px solid var(--border); }
+.tbl-head h2 { font-size:16px; font-weight:700; }
+.tbl-count { font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text-dim); background:var(--surface2); padding:3px 10px; border-radius:4px; }
+
+.tbl-scroll { overflow-x:auto; }
+table { width:100%; border-collapse:collapse; }
+thead th {
+  font-family:'JetBrains Mono',monospace; font-size:9px; font-weight:700;
+  text-transform:uppercase; letter-spacing:0.8px; color:var(--text-dim);
+  padding:12px 12px; text-align:left; border-bottom:1px solid var(--border);
+  white-space:nowrap; cursor:pointer; user-select:none;
+  position:sticky; top:0; background:var(--surface); z-index:2;
+}
+thead th:hover { color:var(--accent); }
+thead th.sort-active { color:var(--accent); }
+tbody tr { border-bottom:1px solid rgba(39,44,58,0.4); transition:background 0.12s; }
+tbody tr:hover { background:rgba(245,166,35,0.03); }
+tbody tr.etf-pick { background:rgba(245,166,35,0.04); }
+tbody td { padding:10px 12px; font-size:12px; vertical-align:middle; }
+
+.tk { font-family:'JetBrains Mono',monospace; font-weight:700; font-size:13px; color:var(--accent); }
+.tk-name { font-size:10px; color:var(--text-dim); margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:140px; }
+
+.stag { display:inline-block; padding:2px 8px; border-radius:3px; font-size:9px; font-weight:700; letter-spacing:0.4px; text-transform:uppercase; white-space:nowrap; }
+.s-energy { background:rgba(239,68,68,0.12); color:#f87171; }
+.s-defense { background:rgba(59,130,246,0.12); color:#60a5fa; }
+.s-materials { background:rgba(168,85,247,0.12); color:#c084fc; }
+.s-shipping { background:rgba(6,182,212,0.12); color:#22d3ee; }
+.s-fertilizer { background:rgba(34,197,94,0.12); color:#4ade80; }
+.s-rareearth { background:rgba(245,166,35,0.12); color:#fbbf24; }
+.s-gold { background:rgba(255,215,0,0.12); color:#fde047; }
+.s-gas { background:rgba(244,114,182,0.12); color:#f9a8d4; }
+.s-copper { background:rgba(251,146,60,0.12); color:#fb923c; }
+
+.subscore { font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text-dim); text-align:center; }
+
+.score-cell { min-width:120px; }
+.sbar { display:flex; align-items:center; gap:8px; }
+.sbar-track { flex:1; height:5px; background:var(--border); border-radius:3px; overflow:hidden; }
+.sbar-fill { height:100%; border-radius:3px; transition:width 0.4s ease; }
+.sbar-val { font-family:'JetBrains Mono',monospace; font-weight:700; font-size:13px; min-width:32px; text-align:right; }
+
+.ytd-badge { font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:600; padding:2px 6px; border-radius:3px; }
+.ytd-up { background:rgba(34,197,94,0.12); color:#4ade80; }
+.ytd-down { background:rgba(239,68,68,0.12); color:#f87171; }
+.ytd-flat { background:rgba(107,115,148,0.12); color:#6b7394; }
+
+.rank-badge {
+  width:24px; height:24px; display:flex; align-items:center; justify-content:center;
+  border-radius:5px; font-family:'JetBrains Mono',monospace; font-weight:700; font-size:11px;
+}
+.r1 { background:linear-gradient(135deg,#f5a623,#d97706); color:#000; }
+.r2 { background:linear-gradient(135deg,#94a3b8,#64748b); color:#000; }
+.r3 { background:linear-gradient(135deg,#b45309,#92400e); color:#fff; }
+.rx { background:var(--surface2); color:var(--text-dim); }
+
+.etf-star { color:var(--accent); font-size:12px; cursor:pointer; }
+
+/* Portfolio */
+.port-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(110px,1fr)); gap:10px; }
+.port-chip {
+  background:var(--surface2); border:1px solid var(--border); border-radius:8px;
+  padding:12px 8px; text-align:center; transition:all 0.2s;
+}
+.port-chip.in { border-color:var(--accent); box-shadow:0 0 12px var(--gold-glow); }
+.port-chip .pt { font-family:'JetBrains Mono',monospace; font-weight:700; font-size:14px; color:var(--accent); }
+.port-chip .ps { font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--text-dim); margin-top:2px; }
+.port-chip .pw { font-size:16px; font-weight:700; margin-top:4px; }
+
+/* Gold thesis callout */
+.callout {
+  background:linear-gradient(135deg,rgba(253,224,71,0.06),rgba(245,166,35,0.06));
+  border:1px solid rgba(253,224,71,0.15); border-radius:10px;
+  padding:20px; margin-bottom:24px;
+}
+.callout h3 { font-size:14px; font-weight:700; color:#fde047; margin-bottom:8px; }
+.callout p { font-size:12px; color:var(--text-dim); line-height:1.7; }
+.callout .highlight { color:var(--accent); font-weight:600; }
+
+/* Risk */
+.risk {
+  background:linear-gradient(135deg,rgba(239,68,68,0.05),rgba(245,166,35,0.05));
+  border:1px solid rgba(239,68,68,0.15); border-radius:10px;
+  padding:20px; margin-bottom:24px;
+}
+.risk h3 { font-size:14px; font-weight:700; color:var(--red); margin-bottom:8px; }
+.risk p { font-size:12px; color:var(--text-dim); line-height:1.7; }
+
+/* Methodology */
+.meth-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:12px; }
+.mcard { background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:16px; }
+.mcard h4 { font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.6px; margin-bottom:6px; }
+.mcard p { font-size:11px; color:var(--text-dim); line-height:1.6; }
+
+@media(max-width:768px) {
+  h1 { font-size:22px; }
+  .container { padding:16px 12px; }
+  .wgrid { grid-template-columns:1fr; }
+  thead th, tbody td { padding:8px 6px; }
+  .tbl-head { flex-direction:column; gap:8px; }
+}
+</style>
+</head>
+<body>
+<div class="noise"></div>
+<div class="container">
+
+<div class="crisis-bar">⚠ LIVE CRISIS · STRAIT OF HORMUZ CLOSED SINCE MAR 4 · DAY 25</div>
+<h1>Hormuz Disruption ETF Screener v3</h1>
+<p class="subtitle">Expanded universe: 30 candidates across 9 sectors scored on <strong style="color:var(--accent)">6 dimensions</strong> including a new <strong style="color:var(--red)">Infrastructure Destruction Impact</strong> factor — tracking confirmed facility damage, repair timelines, and permanent capacity loss from Iranian strikes across 6 Gulf nations.</p>
+
+<!-- Equation -->
+<div class="panel">
+  <h2>📐 Composite Score: HDCS Formula</h2>
+  <div class="equation">
+<span class="c">// Hormuz Disruption Composite Score v3 — now with Infrastructure Destruction Impact</span><br><br>
+<span class="v">HDCS</span> = (<span class="v">W₁</span> × <span class="v">SupplyDisrupt</span>) + (<span class="v">W₂</span> × <span class="v">DemandUrge</span>) + (<span class="v">W₃</span> × <span class="v">DurationLev</span>) + (<span class="v">W₄</span> × <span class="v">EssentialPrem</span>) + (<span class="v">W₅</span> × <span class="v">InsulationAdv</span>) + (<span class="v">W₆</span> × <span class="v">DestructionImpact</span>)<br><br>
+<span class="c">// Each sub-score 0–10. Weighted sum normalized to 0–100. IDI measures how much PERMANENT capacity was destroyed.</span>
+  </div>
+  <div class="wgrid" id="wgrid"></div>
+</div>
+
+<!-- Infrastructure Damage Database -->
+<div class="panel" style="border-left:3px solid var(--red);">
+  <h2>💥 Infrastructure Destruction Database — Confirmed Damage</h2>
+  <p style="font-size:12px;color:var(--text-dim);margin-bottom:16px;">Sourced from Reuters, Al Jazeera, Bloomberg, PBS, QatarEnergy CEO statements, and satellite imagery analysis. Last updated Mar 30, 2026.</p>
+  <div id="damage-db"></div>
+</div>
+
+<!-- Sector Filters -->
+<div class="filter-bar" id="filters"></div>
+
+<!-- Table -->
+<div class="tbl-wrap">
+  <div class="tbl-head">
+    <h2>Full Candidate Universe — Ranked</h2>
+    <div class="tbl-count" id="count">30 stocks</div>
+  </div>
+  <div class="tbl-scroll">
+    <table>
+      <thead><tr>
+        <th>#</th><th>Ticker</th><th>Sector</th>
+        <th data-col="supply">SD</th><th data-col="demand">DU</th>
+        <th data-col="duration">DL</th><th data-col="essential">EGP</th>
+        <th data-col="insulation">IA</th><th data-col="destruction">IDI</th><th data-col="ytd">YTD</th>
+        <th data-col="total" class="sort-active">HDCS ▼</th>
+        <th>ETF</th>
+      </tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Portfolio -->
+<div class="panel">
+  <h2>📊 Custom ETF Basket — Top 10 (Equal-Weight)</h2>
+  <div class="port-grid" id="portfolio"></div>
+</div>
+
+<!-- Gold Thesis Callout -->
+<div class="callout">
+  <h3>🥇 Gold Thesis: DXY-Conditional — Currently Headwind</h3>
+  <p>Gold has <span class="highlight">dropped 14% since the war began</span> despite being the "classic" geopolitical safe haven. The mechanism: surging oil → inflation fears → Fed holds rates → DXY strengthens → gold priced in dollars becomes expensive for global buyers. Gold ETFs (GLD, GDX) have seen massive outflows. <span class="highlight">Gold had its worst week since 1983.</span></p>
+  <p style="margin-top:8px;">The gold trade ACTIVATES when: (1) DXY rolls over (watch for Fed pivot signals), (2) real yields fall, (3) central bank buying resumes (China/India absent since Feb). JP Morgan still targets $6,300/oz by year-end. <span class="highlight">Gold is scored lower in HDCS because the DXY headwind makes it a CONDITIONAL play, not a direct Hormuz beneficiary.</span> If you see DXY break below 104, consider rotating gold miners (WPM, RGLD, IAG, GDXJ) into the basket to replace shipping or fertilizer names that may have already run.</p>
+</div>
+
+<!-- Risk -->
+<div class="risk">
+  <h3>⚠ Key Risks</h3>
+  <p><strong>Ceasefire / Strait Reopening:</strong> DIA estimates 1–6 month closure. A rapid resolution unwinds shipping (FRO, FLNG), commodity premiums (AA, FCX), and fertilizer spikes. Defense and rare earth carry structural tailwind beyond the crisis. <strong>Demand Destruction:</strong> Oil above $150 triggers recession risk, destroying demand and pulling down even beneficiary stocks. <strong>Gold:</strong> If DXY stays strong, gold underperforms. If DXY breaks, gold could surge 15-20% and outperform the entire basket. <strong>This is NOT financial advice</strong> — this is a scoring framework for your own analysis.</p>
+</div>
+
+<!-- Methodology -->
+<div class="panel">
+  <h2>📋 Scoring Methodology</h2>
+  <div class="meth-grid">
+    <div class="mcard"><h4>🔴 Supply Disruption (SD)</h4><p>% of the commodity's global supply transiting Hormuz or under force majeure. Strait carries 20% of oil, 20% of LNG, 45% of sulfur, 33% of helium, 20% of aluminum exports. Higher = bigger price spike for outside producers.</p></div>
+    <div class="mcard"><h4>🟡 Demand Urgency (DU)</h4><p>Seasonal + criticality of demand NOW. Spring planting = fertilizer max urgency. Active military ops = defense/rare-earth extreme. Semiconductor helium buffer = ~90 days before crisis. Gold demand is DXY-conditional.</p></div>
+    <div class="mcard"><h4>🔵 Duration Leverage (DL)</h4><p>How much the stock compounds with a LONGER closure. Tankers benefit every day. Defense replenishment cycles last years. Fertilizer is seasonal (urgent now, less so in Q3). Gold benefits from sustained inflation only if Fed pivots.</p></div>
+    <div class="mcard"><h4>🟢 Essential Goods (EGP)</h4><p>Must-buy regardless of price. Oil, food/fertilizer, munitions = 10/10. Helium for chips is critical but niche. Copper/aluminum essential but with some substitution. Gold is a store of value, not a consumption good.</p></div>
+    <div class="mcard"><h4>🟣 Insulation Advantage (IA)</h4><p>Operates OUTSIDE disruption zone, sells INTO shortage. U.S. domestic E&Ps, U.S. LNG, U.S. fertilizer = max insulation. Companies with Gulf/international ops score lower. EGY has Africa/Egypt ops — insulated from Hormuz but some geopolitical risk.</p></div>
+    <div class="mcard"><h4>💥 Infra. Destruction Impact (IDI)</h4><p>NEW: How much does CONFIRMED physical destruction of Gulf facilities benefit this stock? Scores how much permanent capacity loss in the commodity amplifies the beneficiary's advantage. Ras Laffan 17% LNG capacity destroyed (3-5yr repair) = LNG/helium/gas stocks score 10. Saudi Ras Tanura shutdown = refiners benefit. Kuwaiti refinery fires = refined product scarcity. The more facilities destroyed, the longer the shortage persists EVEN AFTER the strait reopens.</p></div>
+    <div class="mcard"><h4>⚖️ Default Weights</h4><p>SD 25% · IA 20% · IDI 20% (new — destruction creates STRUCTURAL shortage beyond strait reopening) · DU 15% · DL 10% · EGP 10%. Adjust sliders to stress-test scenarios.</p></div>
+  </div>
+</div>
+
+</div>
+
+<script>
+// === INFRASTRUCTURE DAMAGE DATABASE ===
+const damageDB = [
+  { facility:"Qatar — Ras Laffan LNG Complex", status:"destroyed", date:"Mar 2 + Mar 18–19",
+    detail:"World's largest LNG facility. Initial drone strike Mar 2 halted all production. Second missile strike Mar 18 destroyed 2 of 14 LNG trains + Pearl GTL plant (Shell). 17% of Qatar's LNG export capacity knocked out.",
+    repair:"3–5 years", cost:"$26B to rebuild damaged units", globalImpact:"20% of global LNG supply offline. Helium production (33% of world supply) ceased as byproduct of LNG processing.",
+    beneficiaries:["VG","LIN","APD","FLNG","EQNR"] },
+  { facility:"Qatar — Mesaieed Industrial City", status:"damaged", date:"Mar 2",
+    detail:"Drone strike on water tank at power plant. Petrochemical complex threatened. QatarEnergy declared force majeure on all output.",
+    repair:"Weeks–months", cost:"Undisclosed", globalImpact:"Fertilizer precursor production (urea, ammonia) disrupted. Qatar produces ~30% of world ammonia.",
+    beneficiaries:["UAN","NTR"] },
+  { facility:"Saudi Arabia — Ras Tanura Refinery", status:"shut down", date:"Mar 2",
+    detail:"Saudi Aramco's largest refinery (550K bpd). Drone debris from interception caused fire. Briefly reopened Mar 13, hit again. Two refinery units impacted per Kpler sources.",
+    repair:"Weeks (operational)", cost:"Undisclosed", globalImpact:"Largest domestic refinery + largest offshore crude loading terminal. Refined product shortage amplified globally.",
+    beneficiaries:["VLO","PBF","MPC","OXY","DVN"] },
+  { facility:"Saudi Arabia — SAMREF Refinery (Yanbu)", status:"damaged", date:"Mar 20",
+    detail:"Joint venture Aramco/ExxonMobil on Red Sea. Drone fell on refinery. Yanbu is Saudi's ONLY bypass route for exports avoiding Hormuz. Ballistic missile also intercepted targeting Yanbu port.",
+    repair:"Days–weeks", cost:"Undisclosed", globalImpact:"Threatens the one alternative export route. If Yanbu is knocked out, Saudi has zero export capacity.",
+    beneficiaries:["XOM","OXY","DVN","COP","FRO"] },
+  { facility:"Saudi Arabia — Juaymah NGL Plant", status:"damaged", date:"Early Mar",
+    detail:"Structural damage to delivery system halted LPG exports. One of world's largest NGL export terminals.",
+    repair:"Weeks", cost:"Undisclosed", globalImpact:"LPG/NGL supply tightened globally.",
+    beneficiaries:["VLO","MPC","PBF"] },
+  { facility:"Saudi Arabia — Shaybah Oil Field", status:"targeted", date:"Mid-Mar",
+    detail:"4 drones destroyed targeting the remote desert oil field. Successfully intercepted — no confirmed damage.",
+    repair:"N/A", cost:"N/A", globalImpact:"Demonstrates Iran's reach to deep Saudi interior. Insurance/risk premiums elevated.",
+    beneficiaries:["OXY","DVN","COP"] },
+  { facility:"Kuwait — Mina al-Ahmadi & Mina Abdullah", status:"damaged", date:"Mar 20",
+    detail:"Drone strikes caused fires at both refineries (combined ~750K bpd capacity). Several units shut down. No casualties.",
+    repair:"Weeks–months", cost:"Undisclosed", globalImpact:"Kuwait declared force majeure, cut oil production. 70% of Iraq's Basra production also dropped.",
+    beneficiaries:["VLO","PBF","MPC","FRO"] },
+  { facility:"UAE — Fujairah Oil Terminal", status:"reduced ops", date:"Mar 3 + Mar 17",
+    detail:"Intercepted drone debris caused fire. Oil loading partially halted. Fujairah handles 1M+ bpd of Murban crude — lies OUTSIDE Hormuz.",
+    repair:"Operational but reduced", cost:"Undisclosed", globalImpact:"Threatens the other bypass route (outside Hormuz). Insurance withdrawn for vessels.",
+    beneficiaries:["FRO","FLNG","EQNR"] },
+  { facility:"UAE — Habshan Gas Facility", status:"shut down", date:"Mar 18",
+    detail:"Operations halted after falling debris from intercepted strike. Shah gasfield also suspended.",
+    repair:"Suspended pending security", cost:"Undisclosed", globalImpact:"UAE gas production reduced. Additional pressure on global gas/LNG market.",
+    beneficiaries:["VG","LIN","APD","EQNR"] },
+  { facility:"Iran — South Pars Gas Field (Asaluyeh)", status:"damaged", date:"Mar 17",
+    detail:"Israeli drone strike damaged 4 gas treatment plants. South Pars supplies 80% of Iran's domestic gas. Triggered Iran's escalation to hitting Gulf energy targets.",
+    repair:"Months–years", cost:"Billions", globalImpact:"Iran's own gas production crippled. Escalatory trigger for all subsequent Gulf facility strikes.",
+    beneficiaries:["VG","LIN","APD"] },
+  { facility:"Oman — Port of Duqm & Salalah", status:"damaged", date:"Early Mar",
+    detail:"Multiple Iranian drones struck fuel tanks at Duqm. Direct hit on fuel storage tank caused explosion. Salalah port also struck. These ports were bypass alternatives.",
+    repair:"Weeks", cost:"Undisclosed", globalImpact:"Eliminates Omani deep-water ports as bypass option. Insurance premiums for all Gulf of Oman shipping surged.",
+    beneficiaries:["FRO","FLNG"] },
+  { facility:"Bahrain — Bapco Oil Refinery (Sitra)", status:"damaged", date:"Mar 9+",
+    detail:"Iranian drone strikes caused fires. Bapco declared force majeure. Desalination plant also targeted.",
+    repair:"Weeks", cost:"Undisclosed", globalImpact:"Bahrain's primary refinery offline. Water supply threatened (90% from desalination).",
+    beneficiaries:["VLO","PBF","MPC"] },
+  { facility:"Israel — Haifa Oil Refinery", status:"damaged", date:"Mar 19",
+    detail:"Iranian missiles struck Oil Refineries Limited complex. Essential infrastructure damaged. Power grid also hit.",
+    repair:"Weeks", cost:"Undisclosed", globalImpact:"Eastern Mediterranean refining capacity reduced.",
+    beneficiaries:["VLO","EQNR"] },
+];
+
+// === STOCK DATA WITH DESTRUCTION SCORES ===
+const stocks = [
+  // destruction score: how much does confirmed infrastructure destruction benefit this stock's thesis?
+  // 10 = direct competitor facility destroyed, creating multi-year structural shortage
+  // 7-9 = significant facility damage creating months-long supply gap
+  // 4-6 = indirect benefit from broad infrastructure damage
+  // 1-3 = minimal connection to destroyed facilities
+  
+  // ENERGY - E&P
+  { tk:"OXY", nm:"Occidental Petroleum", sec:"energy", sl:"Energy E&P", supply:9, demand:9, duration:8, essential:10, insulation:10, destruction:9, ytd:22 },
+  { tk:"DVN", nm:"Devon Energy", sec:"energy", sl:"Energy E&P", supply:9, demand:9, duration:8, essential:10, insulation:10, destruction:9, ytd:28 },
+  { tk:"XOM", nm:"ExxonMobil", sec:"energy", sl:"Energy Major", supply:8, demand:9, duration:8, essential:10, insulation:8, destruction:8, ytd:16 },
+  { tk:"CVX", nm:"Chevron", sec:"energy", sl:"Energy Major", supply:8, demand:9, duration:8, essential:10, insulation:7, destruction:7, ytd:14 },
+  { tk:"COP", nm:"ConocoPhillips", sec:"energy", sl:"Energy E&P", supply:8, demand:9, duration:8, essential:10, insulation:9, destruction:8, ytd:20 },
+  { tk:"BP", nm:"BP plc", sec:"energy", sl:"Energy Major", supply:7, demand:8, duration:7, essential:10, insulation:5, destruction:5, ytd:10 },
+  { tk:"PBR", nm:"Petrobras (Brazil)", sec:"energy", sl:"Energy Major", supply:7, demand:8, duration:7, essential:10, insulation:8, destruction:6, ytd:12 },
+  { tk:"EQNR", nm:"Equinor (Norway)", sec:"energy", sl:"Energy Major", supply:8, demand:9, duration:8, essential:10, insulation:9, destruction:9, ytd:20 },
+  { tk:"EGY", nm:"VAALCO Energy", sec:"energy", sl:"Energy E&P", supply:7, demand:8, duration:7, essential:9, insulation:7, destruction:6, ytd:15 },
+  // Refiners
+  { tk:"VLO", nm:"Valero Energy", sec:"energy", sl:"Refiner", supply:8, demand:9, duration:7, essential:10, insulation:9, destruction:10, ytd:18 },
+  { tk:"MPC", nm:"Marathon Petroleum", sec:"energy", sl:"Refiner", supply:8, demand:9, duration:7, essential:10, insulation:9, destruction:10, ytd:16 },
+  { tk:"PBF", nm:"PBF Energy", sec:"energy", sl:"Refiner", supply:8, demand:9, duration:7, essential:10, insulation:9, destruction:10, ytd:20 },
+  // Services
+  { tk:"SLB", nm:"SLB (Schlumberger)", sec:"energy", sl:"Energy Svc", supply:6, demand:7, duration:8, essential:7, insulation:5, destruction:7, ytd:4 },
+  { tk:"HAL", nm:"Halliburton", sec:"energy", sl:"Energy Svc", supply:6, demand:7, duration:8, essential:7, insulation:6, destruction:7, ytd:5 },
+  { tk:"BKR", nm:"Baker Hughes", sec:"energy", sl:"Energy Svc", supply:6, demand:7, duration:8, essential:7, insulation:6, destruction:7, ytd:6 },
+  // LNG
+  { tk:"VG", nm:"Venture Global LNG", sec:"energy", sl:"LNG Export", supply:10, demand:10, duration:9, essential:9, insulation:10, destruction:10, ytd:45 },
+  // SHIPPING
+  { tk:"FRO", nm:"Frontline (Tankers)", sec:"shipping", sl:"Shipping", supply:9, demand:8, duration:10, essential:7, insulation:8, destruction:9, ytd:51 },
+  { tk:"FLNG", nm:"FLEX LNG", sec:"shipping", sl:"Shipping", supply:8, demand:8, duration:10, essential:7, insulation:8, destruction:9, ytd:30 },
+  // DEFENSE
+  { tk:"LMT", nm:"Lockheed Martin", sec:"defense", sl:"Defense", supply:6, demand:10, duration:10, essential:10, insulation:10, destruction:8, ytd:15 },
+  { tk:"NOC", nm:"Northrop Grumman", sec:"defense", sl:"Defense", supply:6, demand:10, duration:10, essential:10, insulation:10, destruction:8, ytd:12 },
+  // FERTILIZER
+  { tk:"UAN", nm:"CVR Partners", sec:"fertilizer", sl:"Fertilizer", supply:9, demand:10, duration:7, essential:10, insulation:9, destruction:9, ytd:42 },
+  { tk:"NTR", nm:"Nutrien Ltd", sec:"fertilizer", sl:"Fertilizer", supply:8, demand:10, duration:7, essential:10, insulation:9, destruction:8, ytd:18 },
+  // MATERIALS
+  { tk:"AA", nm:"Alcoa Corp", sec:"materials", sl:"Aluminum", supply:8, demand:7, duration:7, essential:7, insulation:9, destruction:6, ytd:14 },
+  // COPPER
+  { tk:"FCX", nm:"Freeport-McMoRan", sec:"copper", sl:"Copper", supply:7, demand:8, duration:7, essential:8, insulation:7, destruction:5, ytd:12 },
+  { tk:"COPX", nm:"Global X Copper ETF", sec:"copper", sl:"Copper ETF", supply:7, demand:7, duration:7, essential:8, insulation:7, destruction:5, ytd:10 },
+  // INDUSTRIAL GAS
+  { tk:"LIN", nm:"Linde plc", sec:"gas", sl:"Industrial Gas", supply:8, demand:9, duration:8, essential:9, insulation:8, destruction:10, ytd:15 },
+  { tk:"APD", nm:"Air Products & Chem", sec:"gas", sl:"Industrial Gas", supply:8, demand:9, duration:8, essential:9, insulation:8, destruction:10, ytd:14 },
+  // RARE EARTH
+  { tk:"ALOY", nm:"REalloys", sec:"rareearth", sl:"Rare Earth", supply:8, demand:10, duration:10, essential:9, insulation:9, destruction:6, ytd:65 },
+  { tk:"UUUU", nm:"Energy Fuels", sec:"rareearth", sl:"Rare Earth", supply:7, demand:9, duration:9, essential:8, insulation:9, destruction:5, ytd:30 },
+  // GOLD
+  { tk:"WPM", nm:"Wheaton Precious Metals", sec:"gold", sl:"Gold Streamer", supply:4, demand:6, duration:6, essential:5, insulation:8, destruction:3, ytd:-8 },
+  { tk:"RGLD", nm:"Royal Gold", sec:"gold", sl:"Gold Royalty", supply:4, demand:6, duration:6, essential:5, insulation:8, destruction:3, ytd:-6 },
+  { tk:"IAG", nm:"iamgold Corp", sec:"gold", sl:"Gold Miner", supply:4, demand:6, duration:5, essential:5, insulation:7, destruction:3, ytd:-10 },
+  { tk:"GDXJ", nm:"VanEck Jr Gold Miners", sec:"gold", sl:"Gold ETF", supply:4, demand:5, duration:5, essential:5, insulation:7, destruction:3, ytd:-12 },
+];
+
+// === WEIGHTS (rebalanced with IDI) ===
+const weightDefs = [
+  { key:"supply", label:"Supply Disruption", def:25, color:"#ef4444", desc:"% of global supply trapped behind Hormuz" },
+  { key:"demand", label:"Demand Urgency", def:15, color:"#f5a623", desc:"Seasonal/critical demand pressure NOW" },
+  { key:"duration", label:"Duration Leverage", def:10, color:"#3b82f6", desc:"Compounds the longer strait stays closed" },
+  { key:"essential", label:"Essential Goods", def:10, color:"#22c55e", desc:"Must-buy regardless of price" },
+  { key:"insulation", label:"Insulation Advantage", def:20, color:"#a78bfa", desc:"Outside disruption zone, sells into it" },
+  { key:"destruction", label:"Destruction Impact", def:20, color:"#f43f5e", desc:"NEW: Confirmed facility damage creates STRUCTURAL shortage beyond reopening" },
+];
+
+let weights = {};
+weightDefs.forEach(w => weights[w.key] = w.def);
+let activeFilter = "all";
+let sortCol = "total";
+let sortDir = -1;
+
+const sectors = ["all","energy","shipping","defense","fertilizer","materials","copper","gas","rareearth","gold"];
+const sectorLabels = { all:"All", energy:"Energy", shipping:"Shipping", defense:"Defense", fertilizer:"Fertilizer", materials:"Materials", copper:"Copper", gas:"Ind. Gas", rareearth:"Rare Earth", gold:"Gold ★" };
+
+function calcScore(s) {
+  const tot = Object.values(weights).reduce((a,b)=>a+b,0)||1;
+  return ((weights.supply*s.supply + weights.demand*s.demand + weights.duration*s.duration + weights.essential*s.essential + weights.insulation*s.insulation + weights.destruction*s.destruction)/tot)*10;
+}
+
+function barColor(v) {
+  if(v>=85) return 'linear-gradient(90deg,#f5a623,#ef4444)';
+  if(v>=75) return 'linear-gradient(90deg,#22c55e,#f5a623)';
+  if(v>=65) return 'linear-gradient(90deg,#3b82f6,#22c55e)';
+  return 'linear-gradient(90deg,#64748b,#3b82f6)';
+}
+
+function renderDamageDB() {
+  const statusColors = { destroyed:'#ef4444', damaged:'#f59e0b', 'shut down':'#f97316', 'reduced ops':'#eab308', targeted:'#6b7394' };
+  document.getElementById('damage-db').innerHTML = `
+    <div style="display:grid;gap:10px;">
+      ${damageDB.map(d=>`
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px;border-left:3px solid ${statusColors[d.status]||'#6b7394'}">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;flex-wrap:wrap;gap:6px;">
+            <span style="font-weight:700;font-size:13px;">${d.facility}</span>
+            <div style="display:flex;gap:6px;align-items:center;">
+              <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text-dim);">${d.date}</span>
+              <span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;padding:2px 8px;border-radius:3px;background:${statusColors[d.status]||'#6b7394'}20;color:${statusColors[d.status]||'#6b7394'}">${d.status}</span>
+            </div>
+          </div>
+          <p style="font-size:11px;color:var(--text-dim);line-height:1.6;margin-bottom:6px;">${d.detail}</p>
+          <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:10px;color:var(--text-dim);">
+            <span>⏱ Repair: <strong style="color:${d.repair.includes('year')?'var(--red)':'var(--accent)'}">${d.repair}</strong></span>
+            ${d.cost!=='Undisclosed'&&d.cost!=='N/A'?`<span>💰 Cost: <strong style="color:var(--accent)">${d.cost}</strong></span>`:''}
+            <span>🌍 ${d.globalImpact.substring(0,80)}${d.globalImpact.length>80?'...':''}</span>
+          </div>
+          <div style="margin-top:6px;display:flex;gap:4px;flex-wrap:wrap;">
+            ${d.beneficiaries.map(t=>`<span style="font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;padding:1px 6px;border-radius:3px;background:rgba(245,166,35,0.1);color:var(--accent);">${t}</span>`).join('')}
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function renderWeights() {
+  document.getElementById('wgrid').innerHTML = weightDefs.map(w=>`
+    <div class="wcard">
+      <label style="color:${w.color}">${w.label}</label>
+      <div class="wval" id="wv-${w.key}">${weights[w.key]}%</div>
+      <input type="range" min="0" max="50" value="${weights[w.key]}" oninput="setW('${w.key}',this.value)" style="accent-color:${w.color}">
+      <div class="wdesc">${w.desc}</div>
+    </div>
+  `).join('');
+}
+
+function setW(k,v) {
+  weights[k]=+v;
+  document.getElementById(`wv-${k}`).textContent=v+'%';
+  render();
+}
+
+function renderFilters() {
+  document.getElementById('filters').innerHTML = sectors.map(s=>
+    `<button class="filter-btn ${s===activeFilter?'active':''}" onclick="setFilter('${s}')">${sectorLabels[s]}</button>`
+  ).join('');
+}
+
+function setFilter(f) { activeFilter=f; renderFilters(); render(); }
+
+function render() {
+  let data = stocks.map(s=>({...s, total:calcScore(s)}));
+  data.sort((a,b)=> sortDir*(a[sortCol==='total'?'total':sortCol] - b[sortCol==='total'?'total':sortCol]));
+  
+  const filtered = activeFilter==='all' ? data : data.filter(s=>s.sec===activeFilter);
+  const top10 = data.slice(0,10).map(s=>s.tk);
+  
+  document.getElementById('count').textContent = filtered.length + ' stocks';
+  
+  document.getElementById('tbody').innerHTML = filtered.map((s,i)=>{
+    const globalRank = data.findIndex(d=>d.tk===s.tk)+1;
+    const rc = globalRank<=3 ? `r${globalRank}` : 'rx';
+    const isETF = top10.includes(s.tk);
+    const ytdClass = s.ytd>0?'ytd-up':s.ytd<0?'ytd-down':'ytd-flat';
+    const ytdStr = s.ytd>0?`+${s.ytd}%`:s.ytd<0?`${s.ytd}%`:'0%';
+    const scoreColor = s.total>=85?'#f5a623':s.total>=75?'#22c55e':s.total>=65?'#3b82f6':'#6b7394';
+    const idiColor = s.destruction>=9?'#f43f5e':s.destruction>=7?'#f59e0b':'#6b7394';
+    return `<tr class="${isETF?'etf-pick':''}">
+      <td><div class="rank-badge ${rc}">${globalRank}</div></td>
+      <td><div class="tk">${s.tk}</div><div class="tk-name">${s.nm}</div></td>
+      <td><span class="stag s-${s.sec}">${s.sl}</span></td>
+      <td class="subscore">${s.supply}</td>
+      <td class="subscore">${s.demand}</td>
+      <td class="subscore">${s.duration}</td>
+      <td class="subscore">${s.essential}</td>
+      <td class="subscore">${s.insulation}</td>
+      <td class="subscore" style="color:${idiColor};font-weight:${s.destruction>=9?'700':'400'}">${s.destruction}</td>
+      <td><span class="ytd-badge ${ytdClass}">${ytdStr}</span></td>
+      <td class="score-cell"><div class="sbar"><div class="sbar-track"><div class="sbar-fill" style="width:${s.total}%;background:${barColor(s.total)}"></div></div><div class="sbar-val" style="color:${scoreColor}">${s.total.toFixed(1)}</div></div></td>
+      <td>${isETF?'<span class="etf-star">★</span>':''}</td>
+    </tr>`;
+  }).join('');
+
+  const etfStocks = data.slice(0,10);
+  document.getElementById('portfolio').innerHTML = etfStocks.map(s=>`
+    <div class="port-chip in">
+      <div class="pt">${s.tk}</div>
+      <div class="ps">${s.total.toFixed(1)}</div>
+      <div class="pw">10%</div>
+    </div>
+  `).join('');
+}
+
+// Column sort
+document.querySelectorAll('thead th[data-col]').forEach(th=>{
+  th.addEventListener('click',()=>{
+    const col = th.dataset.col;
+    if(sortCol===col) sortDir*=-1;
+    else { sortCol=col; sortDir=-1; }
+    document.querySelectorAll('thead th').forEach(t=>t.classList.remove('sort-active'));
+    th.classList.add('sort-active');
+    render();
+  });
+});
+
+renderWeights();
+renderDamageDB();
+renderFilters();
+render();
+</script>
+</body>
+</html>
